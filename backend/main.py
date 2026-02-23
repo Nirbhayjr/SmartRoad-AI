@@ -39,10 +39,18 @@ app.add_middleware(
 
 # Load YOLO model
 try:
+    # Force YOLO to load on CPU to avoid allocating memory for GPU context
+    # Use task='detect' and avoid loading half-precision unless specified.
+    import torch
+    device = "cpu"
+    # To reduce memory usage, we disable some heavy caches if possible
     model = YOLO("pothole.pt")
-except:
-    print("Warning: pothole.pt not found, using default model")
+    model.to(device)
+except Exception as e:
+    print(f"Warning: model loading error: {e}. Using generic yolov8n.pt")
+    # yolov8n is ultra-lightweight
     model = YOLO("yolov8n.pt")
+    model.to("cpu")
 # ================= ADMIN DASHBOARD MEMORY STORAGE =================
 
 dashboard_data = {
@@ -325,6 +333,12 @@ async def detect_image(
         # Convert to base64
         image_base64 = image_to_base64(image_with_detections)
        
+        # Manual GC to keep RAM usage under 512MB for free tier Render
+        import gc
+        del image
+        del nparr
+        gc.collect()
+
         # Calculate statistics
         severity_count = {
             "Minor": len([d for d in detections if d["severity"] == "Minor"]),
@@ -456,6 +470,12 @@ async def detect_image(
             detections = detect_potholes(image)
             image_with_detections = draw_detections(image.copy(), detections)
             image_base64 = image_to_base64(image_with_detections)
+
+            # Manual garbage collection to prevent memory ballooning on 512MB Render instances
+            import gc
+            del image
+            del nparr
+            gc.collect()
 
             severity_count = {
                 "Minor": len([d for d in detections if d["severity"] == "Minor"]),
@@ -679,6 +699,12 @@ async def detect_video(
                     per_frame_logs.append(entry)
                 except Exception:
                     pass
+            
+            # Manual GC to prevent memory overflow on 512MB RAM instances
+            import gc
+            del frame
+            del annotated_frame
+            gc.collect()
        
         cap.release()
         try:

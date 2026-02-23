@@ -17,7 +17,7 @@
           "report_id": 1,
           "type": "image",
           "detections": 1,
-          "status": "In Progress"
+          "status": "Site Verification"
         }
       },
       {
@@ -50,7 +50,7 @@
           "report_id": 1,
           "type": "video",
           "detections": 40,
-          "status": "In Progress"
+          "status": "Site Verification"
         }
       },
       {
@@ -61,7 +61,7 @@
           "report_id": 1,
           "type": "image",
           "detections": 1,
-          "status": "In Progress"
+          "status": "Site Verification"
         }
       },
       {
@@ -72,7 +72,7 @@
           "report_id": 1,
           "type": "image",
           "detections": 1,
-          "status": "In Progress"
+          "status": "Site Verification"
         }
       },
       {
@@ -83,7 +83,7 @@
           "report_id": 1,
           "type": "video",
           "detections": 40,
-          "status": "In Progress"
+          "status": "Site Verification"
         }
       },
       {
@@ -94,7 +94,7 @@
           "report_id": 1,
           "type": "image",
           "detections": 1,
-          "status": "In Progress"
+          "status": "Site Verification"
         }
       }
     ]
