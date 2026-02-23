@@ -451,141 +451,150 @@ async def detect_image(
         raise HTTPException(status_code=500, detail=f"Error processing image: {str(e)}")
 
 
-    @app.post("/detect/url-image")
-    async def detect_image_from_url(body: dict = Body(...), request: Request = None):
-        """Fetch an image from a remote URL and run detection."""
-        try:
-            image_url = body.get('image_url') if isinstance(body, dict) else None
-            if not image_url:
-                raise HTTPException(status_code=400, detail="image_url is required")
+@app.post("/detect/url-image")
+async def detect_image_from_url(body: dict = Body(...), request: Request = None):
+    """Fetch an image from a remote URL and run detection."""
+    try:
+        image_url = body.get('image_url') if isinstance(body, dict) else None
+        if not image_url:
+            raise HTTPException(status_code=400, detail="image_url is required")
 
-            # Download image bytes
+        # Download image bytes
+        try:
+            with urllib.request.urlopen(image_url, timeout=15) as resp:
+                contents = resp.read()
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Failed to download image: {str(e)}")
+
+        nparr = np.frombuffer(contents, np.uint8)
+        image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        if image is None:
+            raise HTTPException(status_code=400, detail="Downloaded file is not a valid image")
+
+        detections = detect_potholes(image)
+        image_with_detections = draw_detections(image.copy(), detections)
+        image_base64 = image_to_base64(image_with_detections)
+
+        # Cache dimensions before GC cleanup
+        image_height = image.shape[0]
+        image_width = image.shape[1]
+
+        # Manual garbage collection to prevent memory ballooning on 512MB Render instances
+        import gc
+        del image
+        del nparr
+        gc.collect()
+
+        severity_count = {
+            "Minor": len([d for d in detections if d["severity"] == "Minor"]),
+            "Moderate": len([d for d in detections if d["severity"] == "Moderate"]),
+            "Major": len([d for d in detections if d["severity"] == "Major"])
+        }
+
+        return {
+            "success": True,
+            "message": "Image detection completed",
+            "detections": detections,
+            "image_with_detections": image_base64,
+            "statistics": {
+                "total_detections": len(detections),
+                "severity_breakdown": severity_count,
+                "image_height": image_height,
+                "image_width": image_width
+            },
+            "timestamp": datetime.now().isoformat()
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error processing url image: {str(e)}")
+
+
+@app.post("/detect/batch")
+async def detect_batch(
+    file: UploadFile = File(None),
+    zip_url: str = Form(None)
+):
+    """Process a batch ZIP (uploaded file or remote zip URL). Returns per-image results and a summary."""
+    try:
+        # Read zip bytes from upload or URL
+        if file is not None:
+            contents = await file.read()
+        elif zip_url:
             try:
-                with urllib.request.urlopen(image_url, timeout=15) as resp:
+                with urllib.request.urlopen(zip_url, timeout=30) as resp:
                     contents = resp.read()
             except Exception as e:
-                raise HTTPException(status_code=400, detail=f"Failed to download image: {str(e)}")
+                raise HTTPException(status_code=400, detail=f"Failed to download zip: {str(e)}")
+        else:
+            raise HTTPException(status_code=400, detail="Provide an uploaded zip file or zip_url")
 
-            nparr = np.frombuffer(contents, np.uint8)
-            image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-            if image is None:
-                raise HTTPException(status_code=400, detail="Downloaded file is not a valid image")
-
-            detections = detect_potholes(image)
-            image_with_detections = draw_detections(image.copy(), detections)
-            image_base64 = image_to_base64(image_with_detections)
-
-            # Cache dimensions before GC cleanup
-            image_height = image.shape[0]
-            image_width = image.shape[1]
-
-            # Manual garbage collection to prevent memory ballooning on 512MB Render instances
-            import gc
-            del image
-            del nparr
-            gc.collect()
-
-            severity_count = {
-                "Minor": len([d for d in detections if d["severity"] == "Minor"]),
-                "Moderate": len([d for d in detections if d["severity"] == "Moderate"]),
-                "Major": len([d for d in detections if d["severity"] == "Major"])
-            }
-
-            return {
-                "success": True,
-                "message": "Image detection completed",
-                "detections": detections,
-                "image_with_detections": image_base64,
-                "statistics": {
-                    "total_detections": len(detections),
-                    "severity_breakdown": severity_count,
-                    "image_height": image_height,
-                    "image_width": image_width
-                },
-                "timestamp": datetime.now().isoformat()
-            }
-
-        except HTTPException:
-            raise
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Error processing url image: {str(e)}")
-
-
-    @app.post("/detect/batch")
-    async def detect_batch(
-        file: UploadFile = File(None),
-        zip_url: str = Form(None)
-    ):
-        """Process a batch ZIP (uploaded file or remote zip URL). Returns per-image results and a summary."""
+        # Open zip
         try:
-            # Read zip bytes from upload or URL
-            if file is not None:
-                contents = await file.read()
-            elif zip_url:
-                try:
-                    with urllib.request.urlopen(zip_url, timeout=30) as resp:
-                        contents = resp.read()
-                except Exception as e:
-                    raise HTTPException(status_code=400, detail=f"Failed to download zip: {str(e)}")
-            else:
-                raise HTTPException(status_code=400, detail="Provide an uploaded zip file or zip_url")
+            zf = zipfile.ZipFile(io.BytesIO(contents))
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Invalid ZIP archive: {str(e)}")
 
-            # Open zip
+        image_files = [n for n in zf.namelist() if n.lower().endswith(('.jpg', '.jpeg', '.png'))]
+        results = []
+        max_process = 200
+        processed = 0
+
+        for name in image_files:
+            if processed >= max_process:
+                break
             try:
-                zf = zipfile.ZipFile(io.BytesIO(contents))
-            except Exception as e:
-                raise HTTPException(status_code=400, detail=f"Invalid ZIP archive: {str(e)}")
-
-            image_files = [n for n in zf.namelist() if n.lower().endswith(('.jpg', '.jpeg', '.png'))]
-            results = []
-            max_process = 200
-            processed = 0
-
-            for name in image_files:
-                if processed >= max_process:
-                    break
-                try:
-                    data = zf.read(name)
-                    nparr = np.frombuffer(data, np.uint8)
-                    image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-                    if image is None:
-                        continue
-
-                    detections = detect_potholes(image)
-                    annotated = draw_detections(image.copy(), detections)
-                    annotated_b64 = image_to_base64(annotated)
-
-                    results.append({
-                        'filename': name,
-                        'detections': detections,
-                        'image_with_detections': annotated_b64,
-                        'statistics': {
-                            'total_detections': len(detections),
-                            'image_width': image.shape[1],
-                            'image_height': image.shape[0]
-                        }
-                    })
-                    processed += 1
-                except Exception:
+                data = zf.read(name)
+                nparr = np.frombuffer(data, np.uint8)
+                image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+                if image is None:
                     continue
 
-            summary = {
-                'processed': processed,
-                'total_files_in_zip': len(image_files),
-                'successful': len(results)
-            }
+                detections = detect_potholes(image)
+                annotated = draw_detections(image.copy(), detections)
+                annotated_b64 = image_to_base64(annotated)
 
-            return {
-                'success': True,
-                'summary': summary,
-                'results': results,
-                'timestamp': datetime.now().isoformat()
-            }
+                # Cache shape before GC
+                image_width = image.shape[1]
+                image_height = image.shape[0]
 
-        except HTTPException:
-            raise
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Batch processing error: {str(e)}")
+                import gc
+                del image
+                del nparr
+                gc.collect()
+
+                results.append({
+                    'filename': name,
+                    'detections': detections,
+                    'image_with_detections': annotated_b64,
+                    'statistics': {
+                        'total_detections': len(detections),
+                        'image_width': image_width,
+                        'image_height': image_height
+                    }
+                })
+                processed += 1
+            except Exception:
+                continue
+
+        summary = {
+            'processed': processed,
+            'total_files_in_zip': len(image_files),
+            'successful': len(results)
+        }
+
+        return {
+            'success': True,
+            'summary': summary,
+            'results': results,
+            'timestamp': datetime.now().isoformat()
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Batch processing error: {str(e)}")
 
 # ============== VIDEO DETECTION ENDPOINTS ==============
 
