@@ -56,7 +56,7 @@ function Navbar() {
     return () => { document.body.style.overflow = '' }
   }, [showLogin, authOpen, coinsOpen])
 
-  if (mounted && pathname && pathname.startsWith('/admin')) return null;
+  if (mounted && pathname && (pathname.startsWith('/admin') || pathname.startsWith('/volunteer'))) return null;
 
   const scrollTo = (id) => {
     setMenuOpen(false)

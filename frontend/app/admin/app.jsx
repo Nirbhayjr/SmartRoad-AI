@@ -170,7 +170,7 @@ const NAV_ITEMS = [
   { id: "settings", label: "Settings", icon: "⚙" },
 ];
 
-function Sidebar({ active, setActive, collapsed }) {
+function Sidebar({ active, setActive, collapsed, setCollapsed }) {
   const router = useRouter();
   return (
     <div style={{
@@ -209,7 +209,12 @@ function Sidebar({ active, setActive, collapsed }) {
         {NAV_ITEMS.map(item => {
           const isActive = active === item.id;
           return (
-            <button key={item.id} onClick={() => setActive(item.id)} style={{
+            <button key={item.id} onClick={() => {
+              setActive(item.id);
+              if (window.innerWidth < 768 && setCollapsed) {
+                setCollapsed(true);
+              }
+            }} style={{
               display: "flex", alignItems: "center", gap: 10,
               padding: collapsed ? "10px 0" : "10px 12px",
               borderRadius: 10,
@@ -1070,6 +1075,13 @@ export default function App() {
   const [authOpen, setAuthOpen] = useState(false);
   const tickRef = useRef(null);
 
+  // Collapse sidebar by default on mobile devices
+  useEffect(() => {
+    if (window.innerWidth < 768) {
+      setSidebarCollapsed(true);
+    }
+  }, []);
+
   /* Simulated auto-refresh */
   useEffect(() => {
     // Poll backend for live stats every 3s
@@ -1126,7 +1138,7 @@ export default function App() {
         fontFamily: "'Exo 2',sans-serif",
         transition: "background 0.3s",
       }}>
-        <Sidebar active={activePage} setActive={setActivePage} collapsed={sidebarCollapsed} />
+        <Sidebar active={activePage} setActive={setActivePage} collapsed={sidebarCollapsed} setCollapsed={setSidebarCollapsed} />
         <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, overflow: "hidden" }}>
           <Topbar
             page={activePage} darkMode={darkMode} setDarkMode={setDarkMode}
