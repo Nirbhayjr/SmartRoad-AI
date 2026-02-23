@@ -307,6 +307,12 @@ async def detect_image(
     """
    
     try:
+        # Pre-initialize so `del image` never causes UnboundLocalError
+        image = None
+        nparr = None
+        image_height = 0
+        image_width = 0
+
         # Read uploaded file
         contents = await file.read()
         nparr = np.frombuffer(contents, np.uint8)
@@ -322,7 +328,7 @@ async def detect_image(
             save_path = None
        
         if image is None:
-            raise HTTPException(status_code=400, detail="Invalid image file")
+            raise HTTPException(status_code=400, detail="Invalid image file - could not decode")
        
         # Detect potholes
         detections = detect_potholes(image)
@@ -341,6 +347,8 @@ async def detect_image(
         import gc
         del image
         del nparr
+        image = None
+        nparr = None
         gc.collect()
 
         # Calculate statistics
@@ -477,6 +485,11 @@ async def detect_image_from_url(body: dict = Body(...), request: Request = None)
         except Exception as e:
             raise HTTPException(status_code=400, detail=f"Failed to download image: {str(e)}")
 
+        image = None
+        nparr = None
+        image_height = 0
+        image_width = 0
+
         nparr = np.frombuffer(contents, np.uint8)
         image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
         if image is None:
@@ -494,6 +507,8 @@ async def detect_image_from_url(body: dict = Body(...), request: Request = None)
         import gc
         del image
         del nparr
+        image = None
+        nparr = None
         gc.collect()
 
         severity_count = {
