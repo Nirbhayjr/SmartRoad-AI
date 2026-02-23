@@ -13,7 +13,6 @@ function Navbar() {
     setMounted(true)
   }, [])
 
-  if (mounted && pathname && pathname.startsWith('/admin')) return null;
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
 
@@ -56,6 +55,8 @@ function Navbar() {
     document.body.style.overflow = (showLogin || authOpen || coinsOpen) ? 'hidden' : ''
     return () => { document.body.style.overflow = '' }
   }, [showLogin, authOpen, coinsOpen])
+
+  if (mounted && pathname && pathname.startsWith('/admin')) return null;
 
   const scrollTo = (id) => {
     setMenuOpen(false)
