@@ -448,7 +448,18 @@ async def detect_image(
         }
    
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error processing image: {str(e)}")
+        # Avoid unbound errors if image wasn't created
+        try:
+            if 'image' in locals() and image is not None:
+                del image
+            if 'nparr' in locals() and nparr is not None:
+                del nparr
+            import gc
+            gc.collect()
+        except Exception: 
+            pass
+
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.post("/detect/url-image")
@@ -508,7 +519,15 @@ async def detect_image_from_url(body: dict = Body(...), request: Request = None)
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error processing url image: {str(e)}")
+        try:
+            if 'image' in locals() and image is not None:
+                del image
+            if 'nparr' in locals() and nparr is not None:
+                del nparr
+            import gc
+            gc.collect()
+        except: pass
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.post("/detect/batch")
