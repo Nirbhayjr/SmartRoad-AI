@@ -333,6 +333,10 @@ async def detect_image(
         # Convert to base64
         image_base64 = image_to_base64(image_with_detections)
        
+        # Cache dimensions before GC cleanup
+        image_height = image.shape[0]
+        image_width = image.shape[1]
+
         # Manual GC to keep RAM usage under 512MB for free tier Render
         import gc
         del image
@@ -437,8 +441,8 @@ async def detect_image(
             "statistics": {
                 "total_detections": len(detections),
                 "severity_breakdown": severity_count,
-                "image_height": image.shape[0],
-                "image_width": image.shape[1]
+                "image_height": image_height,
+                "image_width": image_width
             },
             "timestamp": datetime.now().isoformat()
         }
@@ -471,6 +475,10 @@ async def detect_image(
             image_with_detections = draw_detections(image.copy(), detections)
             image_base64 = image_to_base64(image_with_detections)
 
+            # Cache dimensions before GC cleanup
+            image_height = image.shape[0]
+            image_width = image.shape[1]
+
             # Manual garbage collection to prevent memory ballooning on 512MB Render instances
             import gc
             del image
@@ -491,8 +499,8 @@ async def detect_image(
                 "statistics": {
                     "total_detections": len(detections),
                     "severity_breakdown": severity_count,
-                    "image_height": image.shape[0],
-                    "image_width": image.shape[1]
+                    "image_height": image_height,
+                    "image_width": image_width
                 },
                 "timestamp": datetime.now().isoformat()
             }
