@@ -318,7 +318,11 @@ async def detect_image(
         nparr = np.frombuffer(contents, np.uint8)
         image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
-        # Save original upload to results/images
+        # Free raw bytes early to save memory
+        del nparr
+        nparr = None
+
+        # Save original upload to results/images (use the already-read bytes)
         try:
             fname = f"{int(datetime.now().timestamp())}_{file.filename}"
             save_path = os.path.join(os.getcwd(), "results", "images", fname)
@@ -326,29 +330,40 @@ async def detect_image(
                 f.write(contents)
         except Exception:
             save_path = None
-       
+        
+        # Free contents buffer immediately after saving
+        del contents
+
         if image is None:
             raise HTTPException(status_code=400, detail="Invalid image file - could not decode")
-       
+
+        # Cache dimensions before any resizing
+        image_height = image.shape[0]
+        image_width = image.shape[1]
+
+        # Downscale large images to reduce peak RAM during YOLO inference
+        MAX_DIM = 800
+        h, w = image.shape[:2]
+        if max(h, w) > MAX_DIM:
+            scale = MAX_DIM / max(h, w)
+            image = cv2.resize(image, (int(w * scale), int(h * scale)), interpolation=cv2.INTER_AREA)
+
         # Detect potholes
         detections = detect_potholes(image)
        
         # Draw detections on image
         image_with_detections = draw_detections(image.copy(), detections)
-       
-        # Convert to base64
+
+        # Free inference image immediately
+        del image
+        image = None
+
+        # Convert annotated image to base64
         image_base64 = image_to_base64(image_with_detections)
-       
-        # Cache dimensions before GC cleanup
-        image_height = image.shape[0]
-        image_width = image.shape[1]
+        del image_with_detections
 
         # Manual GC to keep RAM usage under 512MB for free tier Render
         import gc
-        del image
-        del nparr
-        image = None
-        nparr = None
         gc.collect()
 
         # Calculate statistics
