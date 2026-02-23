@@ -88,7 +88,7 @@ export default function VolunteerPage() {
       })
     }
 
-    const backend = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
+    const backend = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://smartroad-ai.onrender.com'
 
     try {
       // quick health check to ensure backend is reachable
@@ -126,7 +126,7 @@ export default function VolunteerPage() {
       try {
         const tk = localStorage.getItem('sr_token')
         if (tk) headers['Authorization'] = `Bearer ${tk}`
-      } catch (e) {}
+      } catch (e) { }
 
       const resp = await fetch(url, {
         method: 'POST',
@@ -151,11 +151,11 @@ export default function VolunteerPage() {
           total_detections: data.statistics.total_detections,
           severity_breakdown: data.statistics.severity_breakdown,
           message: data.message || 'Pothole detected — report saved.',
-          annotated: data.image_with_detections 
+          annotated: data.image_with_detections
             ? `data:image/jpeg;base64,${data.image_with_detections}`
             : null
         }
-        
+
         // show detection summary and success
         setDetectionResult(result)
 
@@ -168,13 +168,13 @@ export default function VolunteerPage() {
           if (tk) {
             const meResp = await fetch(`${backend}/auth/me`, { headers: { 'Authorization': `Bearer ${tk}` } })
             if (meResp.ok) {
-              const meData = await meResp.json().catch(()=>null)
+              const meData = await meResp.json().catch(() => null)
               if (meData && meData.success && meData.data) {
-                try { localStorage.setItem('sr_user', JSON.stringify(meData.data)) } catch(e){}
+                try { localStorage.setItem('sr_user', JSON.stringify(meData.data)) } catch (e) { }
               }
             }
           }
-        } catch (e) {}
+        } catch (e) { }
 
         alert(result.message)
       } else {
@@ -218,23 +218,23 @@ export default function VolunteerPage() {
           {/* Upload Location Card */}
           <div className="glass-card">
             <h3 className="card-title">Upload Location</h3>
-              <div className="mt-3 mb-4 rounded overflow-hidden border border-gray-700 bg-gray-900" style={{height: 160}}>
-                <div style={{width: '100%', height: '100%'}}>
-                  {/* Live Leaflet map */}
-                  <div style={{width: '100%', height: '100%'}}>
-                    {/* VolunteerMap is imported below via dynamic client component */}
-                    {/* We render it with the current location (if any) */}
-                    <div style={{width: '100%', height: '100%'}}>
-                      {/* placeholder while component loads */}
-                        <VolunteerMap location={location} />
-                    </div>
+            <div className="mt-3 mb-4 rounded overflow-hidden border border-gray-700 bg-gray-900" style={{ height: 160 }}>
+              <div style={{ width: '100%', height: '100%' }}>
+                {/* Live Leaflet map */}
+                <div style={{ width: '100%', height: '100%' }}>
+                  {/* VolunteerMap is imported below via dynamic client component */}
+                  {/* We render it with the current location (if any) */}
+                  <div style={{ width: '100%', height: '100%' }}>
+                    {/* placeholder while component loads */}
+                    <VolunteerMap location={location} />
                   </div>
                 </div>
               </div>
-              <div className="flex gap-3 items-center">
-                <button onClick={requestLocation} className="btn-cta">Get Current Location</button>
-                <p className="text-xs text-gray-400 mt-0">{location ? `${location.lat.toFixed(5)}, ${location.lon.toFixed(5)}` : 'No location'}</p>
-              </div>
+            </div>
+            <div className="flex gap-3 items-center">
+              <button onClick={requestLocation} className="btn-cta">Get Current Location</button>
+              <p className="text-xs text-gray-400 mt-0">{location ? `${location.lat.toFixed(5)}, ${location.lon.toFixed(5)}` : 'No location'}</p>
+            </div>
           </div>
 
           {/* Description Card */}

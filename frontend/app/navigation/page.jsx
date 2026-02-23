@@ -22,7 +22,7 @@ export default function NavigatePage() {
   const [showAlertZones, setShowAlertZones] = useState(true)
   const [soundEnabled, setSoundEnabled] = useState(true)
   const [lastAlertTime, setLastAlertTime] = useState({})
-  
+
   // Route planning states
   const [useRouteMode, setUseRouteMode] = useState(false)
   const [showRouteModal, setShowRouteModal] = useState(false)
@@ -47,9 +47,9 @@ export default function NavigatePage() {
     const fetchReports = async () => {
       setLoading(true)
       try {
-          const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
-          const response = await axios.get(`${backendUrl}/admin/stats`)
-          setReports((response.data && response.data.data && response.data.data.reports) || [])
+        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://smartroad-ai.onrender.com'
+        const response = await axios.get(`${backendUrl}/admin/stats`)
+        setReports((response.data && response.data.data && response.data.data.reports) || [])
         setError(null)
       } catch (err) {
         // If backend is not available, try to load from local file
@@ -84,7 +84,7 @@ export default function NavigatePage() {
   const playAlertSound = useCallback(async () => {
     if (!soundEnabled) return
 
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://smartroad-ai.onrender.com'
     const soundUrl = `${backendUrl}/sounds/alert.mp3`
 
     try {
@@ -101,16 +101,16 @@ export default function NavigatePage() {
         const audioContext = new (window.AudioContext || window.webkitAudioContext)()
         const oscillator = audioContext.createOscillator()
         const gainNode = audioContext.createGain()
-        
+
         oscillator.connect(gainNode)
         gainNode.connect(audioContext.destination)
-        
+
         oscillator.frequency.value = 800
         oscillator.type = 'sine'
-        
+
         gainNode.gain.setValueAtTime(0.3, audioContext.currentTime)
         gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5)
-        
+
         oscillator.start(audioContext.currentTime)
         oscillator.stop(audioContext.currentTime + 0.5)
       } catch (err2) {
@@ -128,9 +128,9 @@ export default function NavigatePage() {
 
     const id = navigator.geolocation.watchPosition(
       (position) => {
-          const newLocation = {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
+        const newLocation = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
           accuracy: position.coords.accuracy,
           speed: position.coords.speed,
           heading: position.coords.heading
@@ -208,8 +208,8 @@ export default function NavigatePage() {
     const Δλ = (lon2 - lon1) * Math.PI / 180
 
     const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-              Math.cos(φ1) * Math.cos(φ2) *
-              Math.sin(Δλ / 2) * Math.sin(Δλ / 2)
+      Math.cos(φ1) * Math.cos(φ2) *
+      Math.sin(Δλ / 2) * Math.sin(Δλ / 2)
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
 
     return R * c
@@ -320,7 +320,7 @@ export default function NavigatePage() {
         `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`
       )
       const data = await response.json()
-      
+
       const suggestions = data.map(item => ({
         name: item.display_name.split(',')[0],
         lat: parseFloat(item.lat),
@@ -399,7 +399,7 @@ export default function NavigatePage() {
   }
 
   return (
-    <div style={{ 
+    <div style={{
       height: '100vh',
       backgroundColor: '#0f172a',
       color: '#FFF',
@@ -429,19 +429,19 @@ export default function NavigatePage() {
             <div>
               <h1 style={{ margin: '0 0 5px 0', fontSize: '24px', fontWeight: 'bold' }}>
                 🗺️ Pothole Navigation & Route Planning
-        {/* Journey active banner */}
-        {isTracking && useRouteMode && (
-          <div style={{ position: 'fixed', top: 140, right: 24, zIndex: 999, background: 'linear-gradient(90deg,#059669,#10b981)', color: '#fff', padding: '10px 14px', borderRadius: 10, boxShadow: '0 8px 20px rgba(2,6,23,0.4)', display: 'flex', gap: 10, alignItems: 'center' }}>
-            <div style={{ fontWeight: '700' }}>Journey Active</div>
-            <button onClick={() => { stopTracking(); setUseRouteMode(false); }} style={{ background: 'rgba(255,255,255,0.12)', color: '#fff', border: 'none', padding: '8px 10px', borderRadius: 8, cursor: 'pointer' }}>Stop Journey</button>
-          </div>
-        )}
+                {/* Journey active banner */}
+                {isTracking && useRouteMode && (
+                  <div style={{ position: 'fixed', top: 140, right: 24, zIndex: 999, background: 'linear-gradient(90deg,#059669,#10b981)', color: '#fff', padding: '10px 14px', borderRadius: 10, boxShadow: '0 8px 20px rgba(2,6,23,0.4)', display: 'flex', gap: 10, alignItems: 'center' }}>
+                    <div style={{ fontWeight: '700' }}>Journey Active</div>
+                    <button onClick={() => { stopTracking(); setUseRouteMode(false); }} style={{ background: 'rgba(255,255,255,0.12)', color: '#fff', border: 'none', padding: '8px 10px', borderRadius: 8, cursor: 'pointer' }}>Stop Journey</button>
+                  </div>
+                )}
               </h1>
               <p style={{ margin: 0, color: '#AAA', fontSize: '14px' }}>
                 {useRouteMode ? 'Showing potholes on your planned route' : 'Real-time GPS tracking with pothole alerts'}
               </p>
             </div>
-            
+
             <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap', width: '100%', justifyContent: 'flex-end' }}>
               <button
                 onClick={() => setShowHowToUse(true)}
@@ -626,7 +626,7 @@ export default function NavigatePage() {
           padding: '20px',
           backdropFilter: 'blur(5px)'
         }}
-        onClick={() => setShowHowToUse(false)}
+          onClick={() => setShowHowToUse(false)}
         >
           <div style={{
             backgroundColor: 'rgba(30, 41, 59, 0.95)',
@@ -638,7 +638,7 @@ export default function NavigatePage() {
             boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
             border: '1px solid rgba(6, 182, 212, 0.2)'
           }}
-          onClick={(e) => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <h2 style={{ margin: 0, fontSize: '24px', fontWeight: 'bold', color: '#06B6D4' }}>
@@ -673,7 +673,7 @@ export default function NavigatePage() {
                 ✕
               </button>
             </div>
-            
+
             <div style={{ fontSize: '15px', lineHeight: '1.8', color: '#DDD', marginBottom: '24px' }}>
               <div style={{ marginBottom: '16px' }}>
                 <strong style={{ color: '#4CAF50', fontSize: '16px' }}>Live Tracking Mode:</strong>
@@ -742,7 +742,7 @@ export default function NavigatePage() {
           padding: '20px',
           backdropFilter: 'blur(5px)'
         }}
-        onClick={() => setShowRouteModal(false)}
+          onClick={() => setShowRouteModal(false)}
         >
           <div style={{
             backgroundColor: 'rgba(30, 41, 59, 0.95)',
@@ -755,7 +755,7 @@ export default function NavigatePage() {
             boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
             border: '1px solid rgba(6, 182, 212, 0.2)'
           }}
-          onClick={(e) => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
             <div style={{
@@ -818,7 +818,7 @@ export default function NavigatePage() {
                 }}>
                   <span style={{ fontSize: '20px' }}>🟢</span> Your Location
                 </label>
-                
+
                 <div style={{ position: 'relative' }}>
                   <input
                     type="text"
@@ -848,7 +848,7 @@ export default function NavigatePage() {
                     }}
                   />
 
-                    {locationSuggestions.start.length > 0 && (
+                  {locationSuggestions.start.length > 0 && (
                     <div style={{
                       position: 'absolute',
                       top: '56px',
@@ -882,7 +882,7 @@ export default function NavigatePage() {
                         </div>
                       ))}
                     </div>
-                    )}
+                  )}
                 </div>
 
                 <button
@@ -923,7 +923,7 @@ export default function NavigatePage() {
                 }}>
                   <span style={{ fontSize: '20px' }}>🔵</span> Destination
                 </label>
-                
+
                 <div style={{ position: 'relative' }}>
                   <input
                     type="text"
@@ -952,7 +952,7 @@ export default function NavigatePage() {
                     }}
                   />
 
-                    {locationSuggestions.end.length > 0 && (
+                  {locationSuggestions.end.length > 0 && (
                     <div style={{
                       position: 'absolute',
                       top: '56px',
@@ -986,7 +986,7 @@ export default function NavigatePage() {
                         </div>
                       ))}
                     </div>
-                    )}
+                  )}
                 </div>
               </div>
 
@@ -1049,84 +1049,84 @@ export default function NavigatePage() {
                   Cancel
                 </button>
                 <div style={{ display: 'flex', gap: 8 }}>
-                <button
-                  onClick={applyRoute}
-                  disabled={!startLocation || !endLocation}
-                  style={{
-                    flex: 2,
-                    padding: '14px',
-                    background: startLocation && endLocation ? 'linear-gradient(135deg, rgb(34, 197, 94), rgb(16, 185, 129))' : 'rgba(148, 163, 184, 0.2)',
-                    color: '#FFF',
-                    border: 'none',
-                    borderRadius: '8px',
-                    cursor: startLocation && endLocation ? 'pointer' : 'not-allowed',
-                    fontSize: '15px',
-                    fontWeight: 'bold',
-                    transition: 'all 0.2s',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '8px'
-                  }}
-                  onMouseOver={(e) => {
-                    if (startLocation && endLocation) {
-                      e.target.style.transform = 'translateY(-2px)';
-                      e.target.style.boxShadow = '0 6px 16px rgba(34, 197, 94, 0.3)';
-                    }
-                  }}
-                  onMouseOut={(e) => {
-                    if (startLocation && endLocation) {
-                      e.target.style.transform = 'translateY(0)';
-                      e.target.style.boxShadow = 'none';
-                    }
-                  }}
-                >
-                  <span>🗺️</span> Show Route Without Potholes
-                </button>
+                  <button
+                    onClick={applyRoute}
+                    disabled={!startLocation || !endLocation}
+                    style={{
+                      flex: 2,
+                      padding: '14px',
+                      background: startLocation && endLocation ? 'linear-gradient(135deg, rgb(34, 197, 94), rgb(16, 185, 129))' : 'rgba(148, 163, 184, 0.2)',
+                      color: '#FFF',
+                      border: 'none',
+                      borderRadius: '8px',
+                      cursor: startLocation && endLocation ? 'pointer' : 'not-allowed',
+                      fontSize: '15px',
+                      fontWeight: 'bold',
+                      transition: 'all 0.2s',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px'
+                    }}
+                    onMouseOver={(e) => {
+                      if (startLocation && endLocation) {
+                        e.target.style.transform = 'translateY(-2px)';
+                        e.target.style.boxShadow = '0 6px 16px rgba(34, 197, 94, 0.3)';
+                      }
+                    }}
+                    onMouseOut={(e) => {
+                      if (startLocation && endLocation) {
+                        e.target.style.transform = 'translateY(0)';
+                        e.target.style.boxShadow = 'none';
+                      }
+                    }}
+                  >
+                    <span>🗺️</span> Show Route Without Potholes
+                  </button>
 
-                <button
-                  onClick={() => {
-                    if (!startLocation || !endLocation) return
-                    applyRoute()
-                    try {
-                      startTracking()
-                    } catch (e) {}
-                  }}
-                  disabled={!startLocation || !endLocation}
-                  style={{
-                    flex: 1,
-                    padding: '14px',
-                    background: startLocation && endLocation ? 'linear-gradient(135deg, rgb(59,130,246), rgb(6,182,212))' : 'rgba(148,163,184,0.12)',
-                    color: '#FFF',
-                    border: 'none',
-                    borderRadius: '8px',
-                    cursor: startLocation && endLocation ? 'pointer' : 'not-allowed',
-                    fontSize: '14px',
-                    fontWeight: '600',
-                    transition: 'all 0.15s',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  ▶ Start Journey
-                </button>
+                  <button
+                    onClick={() => {
+                      if (!startLocation || !endLocation) return
+                      applyRoute()
+                      try {
+                        startTracking()
+                      } catch (e) { }
+                    }}
+                    disabled={!startLocation || !endLocation}
+                    style={{
+                      flex: 1,
+                      padding: '14px',
+                      background: startLocation && endLocation ? 'linear-gradient(135deg, rgb(59,130,246), rgb(6,182,212))' : 'rgba(148,163,184,0.12)',
+                      color: '#FFF',
+                      border: 'none',
+                      borderRadius: '8px',
+                      cursor: startLocation && endLocation ? 'pointer' : 'not-allowed',
+                      fontSize: '14px',
+                      fontWeight: '600',
+                      transition: 'all 0.15s',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    ▶ Start Journey
+                  </button>
                 </div>
               </div>
             </div>
 
-              {/* Inline Preview Map (shows when both start and end selected) */}
-              {startLocation && endLocation && (
-                <div style={{ marginTop: '12px', marginBottom: '18px', height: 220, borderRadius: 12, overflow: 'hidden', border: '1px solid rgba(6,182,212,0.12)' }}>
-                  <RouteMap
-                    startLocation={startLocation}
-                    endLocation={endLocation}
-                    reports={reports}
-                    showAnalysis={false}
-                    style={{ height: '100%' }}
-                  />
-                </div>
-              )}
+            {/* Inline Preview Map (shows when both start and end selected) */}
+            {startLocation && endLocation && (
+              <div style={{ marginTop: '12px', marginBottom: '18px', height: 220, borderRadius: 12, overflow: 'hidden', border: '1px solid rgba(6,182,212,0.12)' }}>
+                <RouteMap
+                  startLocation={startLocation}
+                  endLocation={endLocation}
+                  reports={reports}
+                  showAnalysis={false}
+                  style={{ height: '100%' }}
+                />
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -1136,8 +1136,8 @@ export default function NavigatePage() {
       {/* END NAVBAR & CONTROLS SECTION */}
 
       {/* Map Container - Separate Section */}
-      <div style={{ 
-        flex: 1, 
+      <div style={{
+        flex: 1,
         position: 'relative',
         overflow: 'hidden'
       }}>
@@ -1156,7 +1156,7 @@ export default function NavigatePage() {
             {loading && '⏳ Loading pothole data...'}
             {isTracking && !error && (
               <span>
-                🟢 Live tracking active • 
+                🟢 Live tracking active •
                 {location && ` 📍 ${location.lat.toFixed(5)}, ${location.lng.toFixed(5)}`}
                 {location?.accuracy && ` • Accuracy: ±${Math.round(location.accuracy)}m`}
                 {location?.speed && location.speed > 0 && ` • Speed: ${(location.speed * 3.6).toFixed(1)} km/h`}
@@ -1166,7 +1166,7 @@ export default function NavigatePage() {
         )}
 
         {/* MAP DISPLAY - absolute fill */}
-        <div style={{ 
+        <div style={{
           position: 'absolute',
           top: 0,
           left: 0,
@@ -1176,221 +1176,221 @@ export default function NavigatePage() {
         }}>
           {/* Real-time Pothole Statistics Panel */}
           {showStatistics && (
-          <div style={{
-            position: 'absolute',
-            top: '20px',
-            right: '20px',
-            zIndex: 1000,
-            backgroundColor: 'rgba(15, 23, 42, 0.95)',
-            backdropFilter: 'blur(12px)',
-            borderRadius: '12px',
-            border: '1px solid rgba(6, 182, 212, 0.3)',
-            padding: '20px',
-            minWidth: '280px',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)'
-          }}>
             <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '10px',
-              marginBottom: '15px',
-              paddingBottom: '12px',
-              borderBottom: '1px solid rgba(6, 182, 212, 0.2)'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span style={{ fontSize: '24px' }}>📊</span>
-                <h3 style={{ 
-                  margin: 0, 
-                  fontSize: '16px', 
-                  fontWeight: 'bold',
-                  color: '#06B6D4'
-                }}>
-                  Live Pothole Statistics
-                </h3>
-              </div>
-              <button
-                onClick={() => setShowStatistics(false)}
-                style={{
-                  backgroundColor: 'transparent',
-                  border: 'none',
-                  color: '#94A3B8',
-                  fontSize: '20px',
-                  cursor: 'pointer',
-                  padding: '0',
-                  width: '28px',
-                  height: '28px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  borderRadius: '4px',
-                  transition: 'all 0.2s'
-                }}
-                onMouseOver={(e) => {
-                  e.target.style.backgroundColor = 'rgba(148, 163, 184, 0.1)';
-                  e.target.style.color = '#E2E8F0';
-                }}
-                onMouseOut={(e) => {
-                  e.target.style.backgroundColor = 'transparent';
-                  e.target.style.color = '#94A3B8';
-                }}
-              >
-                ✕
-              </button>
-            </div>
-
-            {loading ? (
-              <div style={{
-                textAlign: 'center',
-                padding: '20px',
-                color: '#94A3B8'
-              }}>
-                <div style={{ fontSize: '32px', marginBottom: '10px' }}>⏳</div>
-                <div>Loading data...</div>
-              </div>
-            ) : error ? (
-              <div style={{
-                textAlign: 'center',
-                padding: '20px',
-                color: '#EF4444'
-              }}>
-                <div style={{ fontSize: '32px', marginBottom: '10px' }}>⚠️</div>
-                <div style={{ fontSize: '13px' }}>{error}</div>
-              </div>
-            ) : (
-              <>
-            {/* Total Count */}
-            <div style={{
-              backgroundColor: 'rgba(6, 182, 212, 0.1)',
-              borderRadius: '8px',
-              padding: '15px',
-              marginBottom: '12px',
+              position: 'absolute',
+              top: '20px',
+              right: '20px',
+              zIndex: 1000,
+              backgroundColor: 'rgba(15, 23, 42, 0.95)',
+              backdropFilter: 'blur(12px)',
+              borderRadius: '12px',
               border: '1px solid rgba(6, 182, 212, 0.3)',
-              textAlign: 'center'
+              padding: '20px',
+              minWidth: '280px',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)'
             }}>
-              <div style={{ 
-                fontSize: '32px', 
-                fontWeight: 'bold',
-                color: '#06B6D4',
-                marginBottom: '4px'
-              }}>
-                {severityStats.totalDetections}
-              </div>
-              <div style={{ 
-                fontSize: '13px', 
-                color: '#94A3B8',
-                fontWeight: '500'
-              }}>
-                Total Potholes Detected
-              </div>
-              <div style={{ 
-                fontSize: '11px', 
-                color: '#64748B',
-                marginTop: '4px'
-              }}>
-                {severityStats.total} Reports
-              </div>
-            </div>
-
-            {/* Severity Breakdown */}
-            <div style={{ fontSize: '14px' }}>
-              <div style={{ 
-                fontSize: '12px', 
-                color: '#94A3B8',
-                marginBottom: '10px',
-                fontWeight: '600',
-                textTransform: 'uppercase',
-                letterSpacing: '0.5px'
-              }}>
-                Severity Breakdown
-              </div>
-
-              {/* Major (Most Severe) */}
               <div style={{
                 display: 'flex',
-                justifyContent: 'space-between',
                 alignItems: 'center',
-                padding: '10px 12px',
-                backgroundColor: 'rgba(220, 38, 38, 0.1)',
-                borderRadius: '6px',
-                marginBottom: '8px',
-                border: '1px solid rgba(220, 38, 38, 0.3)'
+                justifyContent: 'space-between',
+                gap: '10px',
+                marginBottom: '15px',
+                paddingBottom: '12px',
+                borderBottom: '1px solid rgba(6, 182, 212, 0.2)'
               }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontSize: '16px' }}>🔴</span>
-                  <span style={{ color: '#FCA5A5', fontWeight: '500' }}>Major</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <span style={{ fontSize: '24px' }}>📊</span>
+                  <h3 style={{
+                    margin: 0,
+                    fontSize: '16px',
+                    fontWeight: 'bold',
+                    color: '#06B6D4'
+                  }}>
+                    Live Pothole Statistics
+                  </h3>
                 </div>
-                <span style={{ 
-                  fontWeight: 'bold', 
-                  fontSize: '16px',
+                <button
+                  onClick={() => setShowStatistics(false)}
+                  style={{
+                    backgroundColor: 'transparent',
+                    border: 'none',
+                    color: '#94A3B8',
+                    fontSize: '20px',
+                    cursor: 'pointer',
+                    padding: '0',
+                    width: '28px',
+                    height: '28px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderRadius: '4px',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseOver={(e) => {
+                    e.target.style.backgroundColor = 'rgba(148, 163, 184, 0.1)';
+                    e.target.style.color = '#E2E8F0';
+                  }}
+                  onMouseOut={(e) => {
+                    e.target.style.backgroundColor = 'transparent';
+                    e.target.style.color = '#94A3B8';
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
+
+              {loading ? (
+                <div style={{
+                  textAlign: 'center',
+                  padding: '20px',
+                  color: '#94A3B8'
+                }}>
+                  <div style={{ fontSize: '32px', marginBottom: '10px' }}>⏳</div>
+                  <div>Loading data...</div>
+                </div>
+              ) : error ? (
+                <div style={{
+                  textAlign: 'center',
+                  padding: '20px',
                   color: '#EF4444'
                 }}>
-                  {severityStats.Major}
-                </span>
-              </div>
-
-              {/* Moderate */}
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                padding: '10px 12px',
-                backgroundColor: 'rgba(249, 115, 22, 0.1)',
-                borderRadius: '6px',
-                marginBottom: '8px',
-                border: '1px solid rgba(249, 115, 22, 0.3)'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontSize: '16px' }}>🟠</span>
-                  <span style={{ color: '#FED7AA', fontWeight: '500' }}>Moderate</span>
+                  <div style={{ fontSize: '32px', marginBottom: '10px' }}>⚠️</div>
+                  <div style={{ fontSize: '13px' }}>{error}</div>
                 </div>
-                <span style={{ 
-                  fontWeight: 'bold', 
-                  fontSize: '16px',
-                  color: '#F97316'
-                }}>
-                  {severityStats.Moderate}
-                </span>
-              </div>
+              ) : (
+                <>
+                  {/* Total Count */}
+                  <div style={{
+                    backgroundColor: 'rgba(6, 182, 212, 0.1)',
+                    borderRadius: '8px',
+                    padding: '15px',
+                    marginBottom: '12px',
+                    border: '1px solid rgba(6, 182, 212, 0.3)',
+                    textAlign: 'center'
+                  }}>
+                    <div style={{
+                      fontSize: '32px',
+                      fontWeight: 'bold',
+                      color: '#06B6D4',
+                      marginBottom: '4px'
+                    }}>
+                      {severityStats.totalDetections}
+                    </div>
+                    <div style={{
+                      fontSize: '13px',
+                      color: '#94A3B8',
+                      fontWeight: '500'
+                    }}>
+                      Total Potholes Detected
+                    </div>
+                    <div style={{
+                      fontSize: '11px',
+                      color: '#64748B',
+                      marginTop: '4px'
+                    }}>
+                      {severityStats.total} Reports
+                    </div>
+                  </div>
 
-              {/* Minor */}
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                padding: '10px 12px',
-                backgroundColor: 'rgba(234, 179, 8, 0.1)',
-                borderRadius: '6px',
-                border: '1px solid rgba(234, 179, 8, 0.3)'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontSize: '16px' }}>🟡</span>
-                  <span style={{ color: '#FDE68A', fontWeight: '500' }}>Minor</span>
-                </div>
-                <span style={{ 
-                  fontWeight: 'bold', 
-                  fontSize: '16px',
-                  color: '#EAB308'
-                }}>
-                  {severityStats.Minor}
-                </span>
-              </div>
-            </div>
+                  {/* Severity Breakdown */}
+                  <div style={{ fontSize: '14px' }}>
+                    <div style={{
+                      fontSize: '12px',
+                      color: '#94A3B8',
+                      marginBottom: '10px',
+                      fontWeight: '600',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px'
+                    }}>
+                      Severity Breakdown
+                    </div>
 
-            {/* Last Updated */}
-            <div style={{
-              marginTop: '12px',
-              paddingTop: '12px',
-              borderTop: '1px solid rgba(6, 182, 212, 0.1)',
-              fontSize: '11px',
-              color: '#64748B',
-              textAlign: 'center'
-            }}>
-              🔄 Updates every 30 seconds
+                    {/* Major (Most Severe) */}
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      padding: '10px 12px',
+                      backgroundColor: 'rgba(220, 38, 38, 0.1)',
+                      borderRadius: '6px',
+                      marginBottom: '8px',
+                      border: '1px solid rgba(220, 38, 38, 0.3)'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '16px' }}>🔴</span>
+                        <span style={{ color: '#FCA5A5', fontWeight: '500' }}>Major</span>
+                      </div>
+                      <span style={{
+                        fontWeight: 'bold',
+                        fontSize: '16px',
+                        color: '#EF4444'
+                      }}>
+                        {severityStats.Major}
+                      </span>
+                    </div>
+
+                    {/* Moderate */}
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      padding: '10px 12px',
+                      backgroundColor: 'rgba(249, 115, 22, 0.1)',
+                      borderRadius: '6px',
+                      marginBottom: '8px',
+                      border: '1px solid rgba(249, 115, 22, 0.3)'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '16px' }}>🟠</span>
+                        <span style={{ color: '#FED7AA', fontWeight: '500' }}>Moderate</span>
+                      </div>
+                      <span style={{
+                        fontWeight: 'bold',
+                        fontSize: '16px',
+                        color: '#F97316'
+                      }}>
+                        {severityStats.Moderate}
+                      </span>
+                    </div>
+
+                    {/* Minor */}
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      padding: '10px 12px',
+                      backgroundColor: 'rgba(234, 179, 8, 0.1)',
+                      borderRadius: '6px',
+                      border: '1px solid rgba(234, 179, 8, 0.3)'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '16px' }}>🟡</span>
+                        <span style={{ color: '#FDE68A', fontWeight: '500' }}>Minor</span>
+                      </div>
+                      <span style={{
+                        fontWeight: 'bold',
+                        fontSize: '16px',
+                        color: '#EAB308'
+                      }}>
+                        {severityStats.Minor}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Last Updated */}
+                  <div style={{
+                    marginTop: '12px',
+                    paddingTop: '12px',
+                    borderTop: '1px solid rgba(6, 182, 212, 0.1)',
+                    fontSize: '11px',
+                    color: '#64748B',
+                    textAlign: 'center'
+                  }}>
+                    🔄 Updates every 30 seconds
+                  </div>
+                </>
+              )}
             </div>
-            </>
-            )}
-          </div>
           )}
 
           {/* Loading overlay when fetching data */}
@@ -1524,7 +1524,7 @@ export default function NavigatePage() {
           )}
 
           <ErrorBoundary>
-              {useRouteMode ? (
+            {useRouteMode ? (
               startLocation && endLocation ? (
                 <RouteMap
                   startLocation={startLocation}
@@ -1567,149 +1567,149 @@ export default function NavigatePage() {
 
       {/* ===== FOOTER & CONTROLS SECTION ===== */}
       <div style={{ flexShrink: 0, backgroundColor: '#0f172a', borderTop: '1px solid rgba(6, 182, 212, 0.1)' }}>
-      {/* Optional GPS Tracking Controls - Collapsed by default, map already shows */}
-      {!useRouteMode && (
-        <details style={{ backgroundColor: 'rgba(15, 23, 42, 0.9)' }}>
-          <summary style={{
-            padding: '12px 20px',
-            cursor: 'pointer',
-            textAlign: 'center',
-            color: '#06B6D4',
-            fontSize: '14px',
-            fontWeight: '500',
-            borderBottom: '1px solid rgba(6, 182, 212, 0.1)',
-            listStyle: 'none',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            gap: '8px',
-            userSelect: 'none'
-          }}
-          onMouseOver={(e) => {
-            e.currentTarget.style.backgroundColor = 'rgba(6, 182, 212, 0.05)';
-          }}
-          onMouseOut={(e) => {
-            e.currentTarget.style.backgroundColor = 'transparent';
-          }}
-          >
-            <span>📱</span>
-            <span>Optional: Enable GPS Tracking & Alerts</span>
-            <span style={{ fontSize: '12px', opacity: 0.7 }}>▼</span>
-          </summary>
-        <div style={{
-          padding: '15px 20px',
-          display: 'flex',
-          gap: '10px',
-          justifyContent: 'center',
-          flexWrap: 'wrap',
-          maxWidth: '800px',
-          margin: '0 auto',
-          borderBottom: '1px solid rgba(6, 182, 212, 0.05)'
-        }}>
-          <button
-            onClick={getCurrentLocation}
-            disabled={isTracking}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: isTracking ? '#555' : '#4CAF50',
-              color: '#FFF',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: isTracking ? 'not-allowed' : 'pointer',
+        {/* Optional GPS Tracking Controls - Collapsed by default, map already shows */}
+        {!useRouteMode && (
+          <details style={{ backgroundColor: 'rgba(15, 23, 42, 0.9)' }}>
+            <summary style={{
+              padding: '12px 20px',
+              cursor: 'pointer',
+              textAlign: 'center',
+              color: '#06B6D4',
               fontSize: '14px',
               fontWeight: '500',
-              transition: 'all 0.2s'
+              borderBottom: '1px solid rgba(6, 182, 212, 0.1)',
+              listStyle: 'none',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              gap: '8px',
+              userSelect: 'none'
             }}
-            onMouseOver={(e) => {
-              if (!isTracking) e.target.style.backgroundColor = '#45A049';
-            }}
-            onMouseOut={(e) => {
-              if (!isTracking) e.target.style.backgroundColor = '#4CAF50';
-            }}
-          >
-            📍 Get My Location
-          </button>
-          
-          <button
-            onClick={toggleTracking}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: isTracking ? '#F44336' : '#2196F3',
-              color: '#FFF',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: 'bold',
-              transition: 'all 0.2s'
-            }}
-            onMouseOver={(e) => {
-              e.target.style.backgroundColor = isTracking ? '#D32F2F' : '#1976D2';
-            }}
-            onMouseOut={(e) => {
-              e.target.style.backgroundColor = isTracking ? '#F44336' : '#2196F3';
-            }}
-          >
-            {isTracking ? '⏹ Stop Live Tracking' : '▶ Start Live Tracking'}
-          </button>
-
-          {/* Alert Settings Row */}
-          <div style={{ 
-            width: '100%', 
-            display: 'flex', 
-            gap: '15px', 
-            flexWrap: 'wrap',
-            justifyContent: 'center',
-            marginTop: '10px',
-            paddingTop: '10px',
-            borderTop: '1px solid rgba(6, 182, 212, 0.1)'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <label style={{ fontSize: '13px', color: '#94A3B8' }}>Alert Radius:</label>
-              <select
-                value={alertRadius}
-                onChange={(e) => setAlertRadius(Number(e.target.value))}
+              onMouseOver={(e) => {
+                e.currentTarget.style.backgroundColor = 'rgba(6, 182, 212, 0.05)';
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent';
+              }}
+            >
+              <span>📱</span>
+              <span>Optional: Enable GPS Tracking & Alerts</span>
+              <span style={{ fontSize: '12px', opacity: 0.7 }}>▼</span>
+            </summary>
+            <div style={{
+              padding: '15px 20px',
+              display: 'flex',
+              gap: '10px',
+              justifyContent: 'center',
+              flexWrap: 'wrap',
+              maxWidth: '800px',
+              margin: '0 auto',
+              borderBottom: '1px solid rgba(6, 182, 212, 0.05)'
+            }}>
+              <button
+                onClick={getCurrentLocation}
+                disabled={isTracking}
                 style={{
-                  padding: '6px 10px',
-                  backgroundColor: '#333',
+                  padding: '10px 20px',
+                  backgroundColor: isTracking ? '#555' : '#4CAF50',
                   color: '#FFF',
-                  border: '1px solid #555',
-                  borderRadius: '4px',
-                  fontSize: '13px',
-                  cursor: 'pointer'
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: isTracking ? 'not-allowed' : 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  transition: 'all 0.2s'
+                }}
+                onMouseOver={(e) => {
+                  if (!isTracking) e.target.style.backgroundColor = '#45A049';
+                }}
+                onMouseOut={(e) => {
+                  if (!isTracking) e.target.style.backgroundColor = '#4CAF50';
                 }}
               >
-                <option value={100}>100m</option>
-                <option value={250}>250m</option>
-                <option value={500}>500m</option>
-                <option value={1000}>1km</option>
-                <option value={2000}>2km</option>
-              </select>
+                📍 Get My Location
+              </button>
+
+              <button
+                onClick={toggleTracking}
+                style={{
+                  padding: '10px 20px',
+                  backgroundColor: isTracking ? '#F44336' : '#2196F3',
+                  color: '#FFF',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: 'bold',
+                  transition: 'all 0.2s'
+                }}
+                onMouseOver={(e) => {
+                  e.target.style.backgroundColor = isTracking ? '#D32F2F' : '#1976D2';
+                }}
+                onMouseOut={(e) => {
+                  e.target.style.backgroundColor = isTracking ? '#F44336' : '#2196F3';
+                }}
+              >
+                {isTracking ? '⏹ Stop Live Tracking' : '▶ Start Live Tracking'}
+              </button>
+
+              {/* Alert Settings Row */}
+              <div style={{
+                width: '100%',
+                display: 'flex',
+                gap: '15px',
+                flexWrap: 'wrap',
+                justifyContent: 'center',
+                marginTop: '10px',
+                paddingTop: '10px',
+                borderTop: '1px solid rgba(6, 182, 212, 0.1)'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <label style={{ fontSize: '13px', color: '#94A3B8' }}>Alert Radius:</label>
+                  <select
+                    value={alertRadius}
+                    onChange={(e) => setAlertRadius(Number(e.target.value))}
+                    style={{
+                      padding: '6px 10px',
+                      backgroundColor: '#333',
+                      color: '#FFF',
+                      border: '1px solid #555',
+                      borderRadius: '4px',
+                      fontSize: '13px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <option value={100}>100m</option>
+                    <option value={250}>250m</option>
+                    <option value={500}>500m</option>
+                    <option value={1000}>1km</option>
+                    <option value={2000}>2km</option>
+                  </select>
+                </div>
+
+                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px', color: '#E2E8F0' }}>
+                  <input
+                    type="checkbox"
+                    checked={showAlertZones}
+                    onChange={(e) => setShowAlertZones(e.target.checked)}
+                    style={{ cursor: 'pointer' }}
+                  />
+                  <span>Alert Zones</span>
+                </label>
+
+                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px', color: '#E2E8F0' }}>
+                  <input
+                    type="checkbox"
+                    checked={soundEnabled}
+                    onChange={(e) => setSoundEnabled(e.target.checked)}
+                    style={{ cursor: 'pointer' }}
+                  />
+                  <span>{soundEnabled ? '🔊' : '🔇'} Sound</span>
+                </label>
+              </div>
             </div>
-
-            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px', color: '#E2E8F0' }}>
-              <input
-                type="checkbox"
-                checked={showAlertZones}
-                onChange={(e) => setShowAlertZones(e.target.checked)}
-                style={{ cursor: 'pointer' }}
-              />
-              <span>Alert Zones</span>
-            </label>
-
-            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px', color: '#E2E8F0' }}>
-              <input
-                type="checkbox"
-                checked={soundEnabled}
-                onChange={(e) => setSoundEnabled(e.target.checked)}
-                style={{ cursor: 'pointer' }}
-              />
-              <span>{soundEnabled ? '🔊' : '🔇'} Sound</span>
-            </label>
-          </div>
-        </div>
-        </details>
-      )}
+          </details>
+        )}
       </div>
       {/* END FOOTER & CONTROLS SECTION */}
 

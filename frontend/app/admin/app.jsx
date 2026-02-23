@@ -1076,7 +1076,8 @@ export default function App() {
     let mounted = true;
     const fetchStats = async () => {
       try {
-        const res = await fetch("http://localhost:8000/admin/stats");
+        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "https://smartroad-ai.onrender.com";
+        const res = await fetch(`${backendUrl}/admin/stats`);
         if (!res.ok) throw new Error('no stats');
         const data = await res.json();
         if (data?.success && mounted) {
