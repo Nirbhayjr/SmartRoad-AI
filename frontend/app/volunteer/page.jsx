@@ -713,6 +713,20 @@ export default function VolunteerUploadPage() {
     const backend = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://smartroad-ai.onrender.com';
 
     try {
+      // pre-flight health check
+      try {
+        const healthResp = await fetch(`${backend}/health`, { method: 'GET' });
+        if (!healthResp.ok) {
+          setError(`Backend health check failed (${healthResp.status}).`);
+          setIsProcessing(false);
+          return;
+        }
+      } catch (err) {
+        setError(`Cannot reach backend at ${backend}. It may be sleeping or offline.`);
+        setIsProcessing(false);
+        return;
+      }
+
       const fd = new FormData();
       fd.append('file', file);
       fd.append('description', description || '');
@@ -732,11 +746,16 @@ export default function VolunteerUploadPage() {
         if (tk) headers['Authorization'] = `Bearer ${tk}`;
       } catch (e) { }
 
-      const resp = await fetch(url, {
-        method: 'POST',
-        body: fd,
-        headers,
-      });
+      let resp;
+      try {
+        resp = await fetch(url, {
+          method: 'POST',
+          body: fd,
+          headers,
+        });
+      } catch (networkErr) {
+        throw new Error(`Network or CORS error connecting to backend: ${networkErr.message}`);
+      }
 
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({}));
